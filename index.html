@@ -397,8 +397,8 @@ if not api_key:
 genai.configure(api_key=api_key)
 
 # --- Create the Model ---
-print("Loading Gemini Pro Vision model...")
-model = genai.GenerativeModel('gemini-pro-vision')
+print("Loading Gemini model...")
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # --- Prepare Image and Prompt ---
 image = PIL.Image.open("landmark.jpg")
@@ -470,34 +470,49 @@ mkdir static</code>
                     <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                     <code>&lt;!DOCTYPE html&gt;
 &lt;html lang="en"&gt;
-&lt;head&gt;
-    &lt;meta charset="UTF-8"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8" /&gt;
     &lt;title&gt;Multimodal Analyzer&lt;/title&gt;
-    &lt;link rel="stylesheet" href="/static/style.css"&gt;
-&lt;/head&gt;
-&lt;body&gt;
+    &lt;link rel="stylesheet" href="/static/style.css" /&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
     &lt;div class="container"&gt;
-        &lt;h1&gt;Image + Text Analyzer 🧠&lt;/h1&gt;
-        &lt;p&gt;Upload an image and ask Gemini a question about it.&lt;/p&gt;
-        &lt;form id="analyzer-form"&gt;
-            &lt;div class="form-group"&gt;
-                &lt;label for="image-upload"&gt;Upload Image&lt;/label&gt;
-                &lt;input type="file" id="image-upload" name="image" accept="image/*" required&gt;
-            &lt;/div&gt;
-            &lt;div class="form-group"&gt;
-                &lt;label for="prompt-input"&gt;Ask a Question&lt;/label&gt;
-                &lt;input type="text" id="prompt-input" name="prompt" 
-                       placeholder="e.g., Suggest a funny caption for this" required&gt;
-            &lt;/div&gt;
-            &lt;button type="submit"&gt;Analyze!&lt;/button&gt;
-        &lt;/form&gt;
-        &lt;div id="result-container"&gt;
-            &lt;h2&gt;Gemini's Answer:&lt;/h2&gt;
-            &lt;p id="result-text"&gt;Your answer will appear here...&lt;/p&gt;
+      &lt;h1&gt;Image + Text Analyzer 🧠&lt;/h1&gt;
+      &lt;p&gt;Upload an image and ask Gemini a question about it.&lt;/p&gt;
+      &lt;form id="analyzer-form"&gt;
+        &lt;div class="form-group"&gt;
+          &lt;label for="image-upload"&gt;Upload Image&lt;/label&gt;
+          &lt;input
+            type="file"
+            id="image-upload"
+            name="image"
+            accept="image/*"
+            required
+          /&gt;
         &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+          &lt;label for="prompt-input"&gt;Ask a Question&lt;/label&gt;
+          &lt;input
+            type="text"
+            id="prompt-input"
+            name="prompt"
+            placeholder="e.g., Suggest a funny caption for this"
+            required
+          /&gt;
+        &lt;/div&gt;
+        &lt;button type="submit" id="analyze-btn"&gt;
+          &lt;span class="btn-text"&gt;Analyze!&lt;/span&gt;
+          &lt;span class="spinner" style="display: none;"&gt;&lt;/span&gt;
+        &lt;/button&gt;
+      &lt;/form&gt;
+      &lt;div id="result-container"&gt;
+        &lt;h2&gt;Gemini's Answer:&lt;/h2&gt;
+        &lt;p id="result-text"&gt;Your answer will appear here...&lt;/p&gt;
+      &lt;/div&gt;
     &lt;/div&gt;
     &lt;script src="/static/script.js"&gt;&lt;/script&gt;
-&lt;/body&gt;
+  &lt;/body&gt;
 &lt;/html&gt;</code>
                 </div>
             </div>
@@ -507,16 +522,132 @@ mkdir static</code>
                 <p><strong>CSS (static/style.css):</strong> Inside the static folder, create <code>style.css</code></p>
                 <div class="code-block">
                     <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                    <code>body { font-family: sans-serif; background-color: #f4f4f9; color: #333; }
-.container { max-width: 600px; margin: 40px auto; padding: 20px; background: #fff; 
-            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-h1 { color: #444; }
-.form-group { margin-bottom: 20px; }
-input[type="file"], input[type="text"] { width: 100%; padding: 10px; border-radius: 4px; 
-                                          border: 1px solid #ddd; }
-button { width: 100%; padding: 10px; border: none; background-color: #5c67f2; 
-         color: white; border-radius: 4px; cursor: pointer; font-size: 16px; }
-#result-container { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }</code>
+                    <code>/* Base Styles */
+body {
+    font-family: sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #444;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+input[type="file"],
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+/* Button Styles */
+button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    background-color: #5c67f2;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: opacity 0.3s ease;
+}
+
+button:hover {
+    background-color: #4a56e2;
+}
+
+button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Spinner Animation */
+.spinner {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Result Container */
+#result-container {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+#result-text {
+    line-height: 1.6;
+}
+
+/* Markdown Styling */
+#result-text h1,
+#result-text h2,
+#result-text h3 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+#result-text p {
+    margin-bottom: 1em;
+}
+
+#result-text ul,
+#result-text ol {
+    margin-left: 20px;
+    margin-bottom: 1em;
+}
+
+#result-text code {
+    background-color: #f4f4f9;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+#result-text pre {
+    background-color: #f4f4f9;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+#result-text blockquote {
+    border-left: 4px solid #5c67f2;
+    padding-left: 15px;
+    margin: 1em 0;
+    color: #666;
+}</code>
                 </div>
 
                 <p><strong>JavaScript (static/script.js):</strong> Inside static, create <code>script.js</code></p>
@@ -526,15 +657,38 @@ button { width: 100%; padding: 10px; border: none; background-color: #5c67f2;
     event.preventDefault();
     const formData = new FormData(event.target);
     const resultText = document.getElementById('result-text');
-    resultText.textContent = "Analyzing... please wait.";
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const btnText = analyzeBtn.querySelector('.btn-text');
+    const spinner = analyzeBtn.querySelector('.spinner');
 
-    const response = await fetch('/analyze', {
-        method: 'POST',
-        body: formData
-    });
+    // Show spinner and disable button
+    btnText.style.display = 'none';
+    spinner.style.display = 'inline-block';
+    analyzeBtn.disabled = true;
+    resultText.innerHTML = "&lt;em&gt;Analyzing... please wait.&lt;/em&gt;";
 
-    const data = await response.json();
-    resultText.textContent = data.text || data.error;
+    try {
+        const response = await fetch('/analyze', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        // Render markdown response
+        if (data.text) {
+            resultText.innerHTML = marked.parse(data.text);
+        } else {
+            resultText.innerHTML = `&lt;span style="color: #e74c3c;"&gt;${data.error}&lt;/span&gt;`;
+        }
+    } catch (error) {
+        resultText.innerHTML = `&lt;span style="color: #e74c3c;"&gt;Error: ${error.message}&lt;/span&gt;`;
+    } finally {
+        // Hide spinner and re-enable button
+        btnText.style.display = 'inline';
+        spinner.style.display = 'none';
+        analyzeBtn.disabled = false;
+    }
 });</code>
                 </div>
             </div>
@@ -560,7 +714,7 @@ except KeyError:
     raise ValueError("GEMINI_API_KEY not found in .env file.")
 
 # --- MODEL INITIALIZATION ---
-model = genai.GenerativeModel('gemini-pro-vision')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # --- FLASK APP ---
 app = Flask(__name__)
@@ -576,10 +730,10 @@ def analyze():
     """Handles the image and prompt submission for analysis."""
     if 'image' not in request.files:
         return jsonify({'error': 'No image file provided'}), 400
-    
+
     image_file = request.files['image']
     prompt = request.form.get('prompt', 'Describe this image.')
-    
+
     try:
         image = PIL.Image.open(image_file.stream)
         response = model.generate_content([prompt, image])
@@ -611,6 +765,9 @@ if __name__ == '__main__':
                     <li>The terminal will show a URL, typically <code>http://127.0.0.1:5000</code></li>
                     <li>Open this URL in your web browser</li>
                 </ol>
+
+                <p><strong>Your UI should look like this:</strong></p>
+                <img src="image.png" alt="Web Application UI" style="max-width: 100%; border-radius: 8px; border: 1px solid #e5e5e5; margin: 20px 0;">
 
                 <div class="info-box">
                     <strong>🎉 Success!</strong> You will now see your web application. Upload an image, type a question, and get a response from Gemini, all within a user-friendly interface!
