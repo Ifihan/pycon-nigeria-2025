@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Multimodal Web App Codelab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #e5e5e5;
+        }
+
+        .header {
+            background: #2c2c2c;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.85;
+            font-size: 1.1em;
+            font-weight: 300;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #2c2c2c;
+            transition: width 0.3s ease;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: #2c2c2c;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e5e5;
+            font-weight: 600;
+        }
+
+        h3 {
+            color: #4a4a4a;
+            font-size: 1.4em;
+            margin: 25px 0 15px 0;
+            font-weight: 600;
+        }
+
+        p, li {
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            position: relative;
+            background: #fafafa;
+            border-radius: 6px;
+            padding: 20px;
+            padding-top: 45px;
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 1px solid #e5e5e5;
+        }
+
+        .code-block code {
+            color: #2c2c2c;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            display: block;
+            white-space: pre;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #2c2c2c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #404040;
+        }
+
+        .copy-btn.copied {
+            background: #4a4a4a;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 30px 40px;
+            background: #fafafa;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .nav-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .prev-btn {
+            background: #e5e5e5;
+            color: #2c2c2c;
+        }
+
+        .prev-btn:hover:not(:disabled) {
+            background: #d4d4d4;
+        }
+
+        .next-btn {
+            background: #2c2c2c;
+            color: white;
+        }
+
+        .next-btn:hover:not(:disabled) {
+            background: #404040;
+        }
+
+        .highlight {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            color: #2c2c2c;
+        }
+
+        .info-box {
+            background: #fafafa;
+            border-left: 3px solid #2c2c2c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .page-indicator {
+            text-align: center;
+            padding: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .folder-structure {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border: 1px solid #e5e5e5;
+            white-space: pre;
+        }
+
+        a {
+            color: #2c2c2c;
+            text-decoration: underline;
+            transition: opacity 0.2s;
+        }
+
+        a:hover {
+            opacity: 0.7;
+        }
+
+        .footer {
+            background: #fafafa;
+            color: #666;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .built-by {
+            text-align: right;
+            padding: 15px 20px;
+            background: white;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .built-by a {
+            color: #2c2c2c;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="built-by">
+            Built by <a href="https://github.com/Ifihan" target="_blank" rel="noopener">Ifihan</a> | <a href="https://github.com/Ifihan/pycon-nigeria-2025" target="_blank" rel="noopener">Contribute to this page</a>
+        </div>
+
+        <div class="header">
+            <h1>🧠 Gemini Multimodal Web App</h1>
+            <p>From Python Script to Web Application</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="page-indicator" id="pageIndicator">Page 1 of 11</div>
+
+        <div class="content">
+            <!-- Page 0: Introduction -->
+            <div class="page active" data-page="0">
+                <h2>Welcome to the Codelab! 👋</h2>
+                <p>This codelab will guide you through a complete development journey. You will start by building a simple command-line Python script to understand the core logic of Gemini, and then evolve it into a fully interactive web application with a front-end and back-end.</p>
+                
+                <h3>What You'll Build:</h3>
+                <ol>
+                    <li>A Python script that analyzes a local image and a text prompt</li>
+                    <li>A web app where users can upload an image, ask a question, and see Gemini's response in their browser</li>
+                </ol>
+
+                <div class="info-box">
+                    <strong>⏱️ Time to Complete:</strong> 15-20 minutes
+                </div>
+
+                <h3>Prerequisites</h3>
+                <ol>
+                    <li><span class="highlight">Python 3.8+</span> installed on your system</li>
+                    <li><span class="highlight">A Google Gemini API Key:</span> Get your free key from <a href="https://aistudio.google.com" target="_blank">Google AI Studio</a></li>
+                    <li>A code editor like VS Code</li>
+                </ol>
+            </div>
+
+            <!-- Page 1: Step 1 - Project Setup -->
+            <div class="page" data-page="1">
+                <h2>Part 1: The Core Logic (Command-Line App)</h2>
+                <p>First, we'll prove the concept with a simple script. This ensures the AI part works before we build the web interface.</p>
+
+                <h3>Step 1: Set Up Your Project Folder</h3>
+                <p>Open your terminal and create a clean workspace.</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code># Create a new folder for our project
+mkdir gemini-web-app
+
+# Navigate into the new folder
+cd gemini-web-app</code>
+                </div>
+            </div>
+
+            <!-- Page 2: Step 2 - Virtual Environment -->
+            <div class="page" data-page="2">
+                <h3>Step 2: Create and Activate a Python Virtual Environment</h3>
+                <p>This isolates our project's libraries.</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code># Create a virtual environment named 'venv'
+python -m venv venv</code>
+                </div>
+
+                <p>Now, <strong>activate</strong> it:</p>
+                <ul>
+                    <li><strong>On macOS / Linux:</strong> <code>source venv/bin/activate</code></li>
+                    <li><strong>On Windows:</strong> <code>.\venv\Scripts\activate</code></li>
+                </ul>
+
+                <div class="info-box">
+                    Your terminal prompt should now start with <code>(venv)</code>
+                </div>
+            </div>
+
+            <!-- Page 3: Step 3 - Install Libraries -->
+            <div class="page" data-page="3">
+                <h3>Step 3: Install Core Libraries</h3>
+                <p>We need pip to install the packages for Gemini and to handle our API key.</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>pip install google-generativeai pillow python-dotenv</code>
+                </div>
+
+                <p><strong>What we just installed:</strong></p>
+                <ul>
+                    <li><strong>google-generativeai:</strong> The official Google client library</li>
+                    <li><strong>Pillow:</strong> For opening and handling images in Python</li>
+                    <li><strong>python-dotenv:</strong> To manage our secret API key</li>
+                </ul>
+            </div>
+
+            <!-- Page 4: Step 4 - Add Image and API Key -->
+            <div class="page" data-page="4">
+                <h3>Step 4: Add an Image and Your API Key</h3>
+                
+                <ol>
+                    <li><strong>Download an Image:</strong> Find an image of a famous landmark (e.g., Eiffel Tower) and save it inside your <code>gemini-web-app</code> folder as <code>landmark.jpg</code></li>
+                    <li><strong>Create .env file:</strong> In the same folder, create a new file named <code>.env</code></li>
+                </ol>
+
+                <p><strong>Add your key:</strong> Open the .env file and add your Gemini API key like so:</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>GEMINI_API_KEY="YOUR_API_KEY_HERE"</code>
+                </div>
+            </div>
+
+            <!-- Page 5: Step 5 - First Python Script -->
+            <div class="page" data-page="5">
+                <h3>Step 5: Create the First Python Script</h3>
+                
+                <ol>
+                    <li>Create a Python file named <code>app.py</code></li>
+                    <li>Paste the following code into it. This is our initial command-line version.</li>
+                </ol>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>import os
+import google.generativeai as genai
+import PIL.Image
+from dotenv import load_dotenv
+
+# --- Load the API Key ---
+load_dotenv()
+api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("Gemini API key not found. Please set it in the .env file.")
+
+# --- Configure the Gemini Client ---
+genai.configure(api_key=api_key)
+
+# --- Create the Model ---
+print("Loading Gemini Pro Vision model...")
+model = genai.GenerativeModel('gemini-pro-vision')
+
+# --- Prepare Image and Prompt ---
+image = PIL.Image.open("landmark.jpg")
+prompt = "What are three interesting facts about this landmark?"
+
+# --- Generate Content ---
+print("Asking Gemini...")
+response = model.generate_content([prompt, image])
+
+# --- Display the Result ---
+print("\n--- Gemini's Response ---")
+print(response.text)
+print("-------------------------\n")</code>
+                </div>
+            </div>
+
+            <!-- Page 6: Step 6 - Run and Verify -->
+            <div class="page" data-page="6">
+                <h3>Step 6: Run and Verify</h3>
+                <p>Execute the script from your terminal:</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>python app.py</code>
+                </div>
+
+                <div class="info-box">
+                    <strong>✅ Success!</strong> You should see a text-only response from Gemini printed directly in your terminal. This confirms our core AI logic is working perfectly!
+                </div>
+
+                <h2 style="margin-top: 40px;">Part 2: Level Up to a Web Application</h2>
+                <p>Now that the core works, let's wrap it in a user-friendly web interface using Flask.</p>
+            </div>
+
+            <!-- Page 7: Step 7 - Project Structure -->
+            <div class="page" data-page="7">
+                <h3>Step 7: Update Project Structure and Install Flask</h3>
+                
+                <p><strong>Install Flask:</strong></p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>pip install Flask</code>
+                </div>
+
+                <p><strong>Create new folders:</strong> We need folders to organize our HTML and CSS files.</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>mkdir templates
+mkdir static</code>
+                </div>
+
+                <p>Your project folder should now look like this:</p>
+                <div class="folder-structure">gemini-web-app/
+├── venv/
+├── static/
+├── templates/
+├── .env
+├── app.py
+└── landmark.jpg</div>
+            </div>
+
+            <!-- Page 8: Step 8 - Frontend Files -->
+            <div class="page" data-page="8">
+                <h3>Step 8: Create the Front-End (HTML, CSS, JS)</h3>
+                <p>We'll create three files for the user interface.</p>
+
+                <p><strong>HTML (templates/index.html):</strong> Inside the templates folder, create <code>index.html</code></p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Multimodal Analyzer&lt;/title&gt;
+    &lt;link rel="stylesheet" href="/static/style.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class="container"&gt;
+        &lt;h1&gt;Image + Text Analyzer 🧠&lt;/h1&gt;
+        &lt;p&gt;Upload an image and ask Gemini a question about it.&lt;/p&gt;
+        &lt;form id="analyzer-form"&gt;
+            &lt;div class="form-group"&gt;
+                &lt;label for="image-upload"&gt;Upload Image&lt;/label&gt;
+                &lt;input type="file" id="image-upload" name="image" accept="image/*" required&gt;
+            &lt;/div&gt;
+            &lt;div class="form-group"&gt;
+                &lt;label for="prompt-input"&gt;Ask a Question&lt;/label&gt;
+                &lt;input type="text" id="prompt-input" name="prompt" 
+                       placeholder="e.g., Suggest a funny caption for this" required&gt;
+            &lt;/div&gt;
+            &lt;button type="submit"&gt;Analyze!&lt;/button&gt;
+        &lt;/form&gt;
+        &lt;div id="result-container"&gt;
+            &lt;h2&gt;Gemini's Answer:&lt;/h2&gt;
+            &lt;p id="result-text"&gt;Your answer will appear here...&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;script src="/static/script.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code>
+                </div>
+            </div>
+
+            <!-- Page 9: CSS and JavaScript -->
+            <div class="page" data-page="9">
+                <p><strong>CSS (static/style.css):</strong> Inside the static folder, create <code>style.css</code></p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>body { font-family: sans-serif; background-color: #f4f4f9; color: #333; }
+.container { max-width: 600px; margin: 40px auto; padding: 20px; background: #fff; 
+            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+h1 { color: #444; }
+.form-group { margin-bottom: 20px; }
+input[type="file"], input[type="text"] { width: 100%; padding: 10px; border-radius: 4px; 
+                                          border: 1px solid #ddd; }
+button { width: 100%; padding: 10px; border: none; background-color: #5c67f2; 
+         color: white; border-radius: 4px; cursor: pointer; font-size: 16px; }
+#result-container { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }</code>
+                </div>
+
+                <p><strong>JavaScript (static/script.js):</strong> Inside static, create <code>script.js</code></p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>document.getElementById('analyzer-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const resultText = document.getElementById('result-text');
+    resultText.textContent = "Analyzing... please wait.";
+
+    const response = await fetch('/analyze', {
+        method: 'POST',
+        body: formData
+    });
+
+    const data = await response.json();
+    resultText.textContent = data.text || data.error;
+});</code>
+                </div>
+            </div>
+
+            <!-- Page 10: Step 9 - Backend Code -->
+            <div class="page" data-page="10">
+                <h3>Step 9: Build the Back-End (Update app.py)</h3>
+                <p><strong>Replace the entire contents</strong> of your <code>app.py</code> file with this new Flask server code.</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>import os
+import google.generativeai as genai
+import PIL.Image
+from dotenv import load_dotenv
+from flask import Flask, request, jsonify, render_template
+
+# --- CONFIGURATION ---
+load_dotenv()
+try:
+    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+except KeyError:
+    raise ValueError("GEMINI_API_KEY not found in .env file.")
+
+# --- MODEL INITIALIZATION ---
+model = genai.GenerativeModel('gemini-pro-vision')
+
+# --- FLASK APP ---
+app = Flask(__name__)
+
+# --- ROUTES ---
+@app.route('/')
+def index():
+    """Renders the main HTML page."""
+    return render_template('index.html')
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    """Handles the image and prompt submission for analysis."""
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image file provided'}), 400
+    
+    image_file = request.files['image']
+    prompt = request.form.get('prompt', 'Describe this image.')
+    
+    try:
+        image = PIL.Image.open(image_file.stream)
+        response = model.generate_content([prompt, image])
+        return jsonify({'text': response.text})
+    except Exception as e:
+        return jsonify({'error': f'An error occurred: {e}'}), 500
+
+# --- RUN THE APP ---
+if __name__ == '__main__':
+    app.run(debug=True)</code>
+                </div>
+            </div>
+
+            <!-- Page 11: Step 10 - Launch -->
+            <div class="page" data-page="11">
+                <h3>Step 10: Launch the Web Application! 🚀</h3>
+                
+                <ol>
+                    <li>Go to your terminal (ensure <code>(venv)</code> is active)</li>
+                </ol>
+
+                <p><strong>Run the Flask app:</strong></p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <code>python app.py</code>
+                </div>
+
+                <ol start="3">
+                    <li>The terminal will show a URL, typically <code>http://127.0.0.1:5000</code></li>
+                    <li>Open this URL in your web browser</li>
+                </ol>
+
+                <div class="info-box">
+                    <strong>🎉 Success!</strong> You will now see your web application. Upload an image, type a question, and get a response from Gemini, all within a user-friendly interface!
+                </div>
+
+                <h2 style="margin-top: 40px;">Congratulations! 🎊</h2>
+                <p>You have successfully built a multimodal application from a simple script to a full-fledged web app. You've combined Python, Gemini, Flask, and basic web technologies to create a powerful AI-driven tool.</p>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn prev-btn" id="prevBtn" onclick="changePage(-1)">← Previous</button>
+            <button class="nav-btn next-btn" id="nextBtn" onclick="changePage(1)">Next →</button>
+        </div>
+
+        <div class="footer">
+            Built with ❤️ for the "Python + Gemini: Multimodal Superpowers for Your Apps" Session at PyCon Nigeria '25
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        const totalPages = document.querySelectorAll('.page').length;
+
+        function updateUI() {
+            document.querySelectorAll('.page').forEach((page, index) => {
+                page.classList.toggle('active', index === currentPage);
+            });
+
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages - 1;
+
+            const progress = ((currentPage + 1) / totalPages) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            document.getElementById('pageIndicator').textContent = `Page ${currentPage + 1} of ${totalPages}`;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            if (currentPage < 0) currentPage = 0;
+            if (currentPage >= totalPages) currentPage = totalPages - 1;
+            updateUI();
+        }
+
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling;
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied! ✓';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
